@@ -12,16 +12,11 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
 
-      - name: Build test binary for aarch64-darwin
-        run: nix build .#glean --system aarch64-darwin
-
-      - name: Copy binary out of Nix store
+      - name: Build with Nix
         run: |
-          mkdir -p out
-          cp result/bin/glean out/
+          nix build --print-build-logs --no-link --out-link result default.nix
 
-      - name: Upload binary as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: glean-m1
-          path: out/glean
+      - name: List build outputs
+        run: |
+          echo "Build outputs:"
+          ls -lh result

@@ -15,13 +15,13 @@
               (hlib.overrideCabal (old: {
                 libraryHaskellDepends = (old.libraryHaskellDepends or []) ++ [ hfinal.hinotify ];
                 jailbreak = true;
-              }) hprev.glean).overrideAttrs
-                (oldAttrs: {
-                  postPatch = ''
-                    ${oldAttrs.postPatch or ""}
-                    rm Setup.hs
-                  '';
-                });
+              }) (hprev.glean {}))
+              .overrideAttrs (oldAttrs: {
+                postPatch = ''
+                  ${oldAttrs.postPatch or ""}
+                  rm Setup.hs
+                '';
+              });
             fb-util =
               (hlib.dontCheck (hlib.unmarkBroken (hlib.doJailbreak hprev.fb-util))).overrideAttrs
                 (oldAttrs: {

@@ -1,6 +1,5 @@
-# flake.nix
 {
-  description = "Example flake with a test binary for M1 Mac";
+  description = "Flake that builds a test binary for M1 Macs";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
@@ -10,12 +9,14 @@
       version = "0.1.0";
       src = ./.;
       buildPhase = ''
-        mkdir -p $out/bin
-        echo '#!/bin/sh' > $out/bin/test
-        echo 'echo Hello, world!' >> $out/bin/test
-        chmod +x $out/bin/test
+        echo '#!/bin/sh' > test
+        echo 'echo Hello, world!' >> test
+        chmod +x test
       '';
-      installPhase = "";
+      installPhase = ''
+        mkdir -p $out/bin
+        mv test $out/bin/test
+      '';
     };
   };
 }

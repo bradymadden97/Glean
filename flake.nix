@@ -25,7 +25,12 @@
     in
     {
       overlays.default = overlay;
-      # No packages output needed for this test
+
+      # Dummy output to force evaluation and print the trace
+      packages.aarch64-darwin._glean_trace = (import nixpkgs {
+        system = "aarch64-darwin";
+        overlays = [ overlay ];
+      }).haskell.packages.ghc9103._trace;
     };
 }
 

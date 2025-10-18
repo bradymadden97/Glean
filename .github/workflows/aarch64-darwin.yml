@@ -13,7 +13,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@main
 
       - name: Build test binary for aarch64-darwin
-        run: nix build .#glean --system aarch64-darwin
+        run: nix build .#_glean_trace --system aarch64-darwin
 
       - name: Copy binary out of Nix store
         run: |

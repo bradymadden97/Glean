@@ -1,0 +1,28 @@
+name: Build aarch64-darwin binary
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+
+      - name: Build test binary for aarch64-darwin
+        run: nix build .#test --system aarch64-darwin
+
+      - name: Copy binary out of Nix store
+        run: |
+          mkdir -p out
+          cp result/bin/test out/test-m1
+
+      - name: Upload binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-m1
+          path: out/test-m1
+

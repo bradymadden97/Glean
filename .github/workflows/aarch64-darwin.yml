@@ -9,17 +9,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Remove _nixbld1 if exists (macOS only)
-        if: runner.os == 'macOS'
-        run: |
-          if dscl . -read /Users/_nixbld1 &>/dev/null; then
-            sudo dscl . -delete /Users/_nixbld1
-          fi
-
       - name: Install Nix
-        uses: cachix/install-nix-action@v25
-        env:
-          NIX_FIRST_BUILD_UID: "305" 
+        uses: DeterminateSystems/nix-installer-action@main
 
       - name: Build test binary for aarch64-darwin
         run: nix build .#test --system aarch64-darwin

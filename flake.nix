@@ -65,10 +65,10 @@
       overlays.default = overlay;
 
       # Expose the package set for aarch64-darwin only
-      packages.aarch64-darwin.hsPkgs = import nixpkgs {
+      packages.aarch64-darwin.glean = (import nixpkgs {
         system = "aarch64-darwin";
         overlays = [ overlay ];
-      };
+      }).haskellPackages.glean;
     };
 }
 

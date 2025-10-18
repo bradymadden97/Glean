@@ -68,7 +68,7 @@
       packages.aarch64-darwin.glean = (import nixpkgs {
         system = "aarch64-darwin";
         overlays = [ overlay ];
-      }).haskel.packages.ghc9103.glean;
+      }).haskell.packages.ghc9103.glean;
     };
 }
 

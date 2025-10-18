@@ -11,8 +11,8 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v25
-	env: 
-	  NIX_FIRST_BUILD_UID: "305" 
+        env:
+          NIX_FIRST_BUILD_UID: "305" 
 
       - name: Build test binary for aarch64-darwin
         run: nix build .#test --system aarch64-darwin

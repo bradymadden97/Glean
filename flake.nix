@@ -40,7 +40,7 @@
             thrift-http = hlib.dontCheck (hlib.doJailbreak hprev.thrift-http);
             thrift-haxl = hlib.dontCheck (hlib.doJailbreak hprev.thrift-haxl);
             fb-stubs = hlib.unmarkBroken (hlib.doJailbreak hprev.fb-stubs);
-            folly-clib = hprev.callCabal2nixWithOptions "folly-clib" (pkgs.fetchzip {
+            folly-clib = hprev.callCabal2nixWithOptions "folly-clib" (final.fetchzip {
               url = "mirror://hackage/folly-clib-20250713.1537/folly-clib-20250713.1537.tar.gz";
               sha256 = "sha256-pmiJ9TDn/TGs/DZwdkk0hl9rCyBjIeQfNDg6mTEMH40=";
             }) "-f-bundled-folly" { libfolly = final.folly; };

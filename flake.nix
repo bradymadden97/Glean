@@ -17,6 +17,7 @@
         mkdir -p $out/bin
         mv test $out/bin/test
       '';
+      dontPatchShebangs = true;
     };
   };
 }

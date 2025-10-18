@@ -8,6 +8,7 @@
       overlay =
         final: prev:
         let
+          hlib = final.haskell.lib;
           overlayHS = hfinal: hprev: {
             glean =
               (hlib.overrideCabal (old: {

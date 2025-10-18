@@ -27,7 +27,7 @@
                       fi
                     fi
                   '';
-                }) .overrideAttrs (oldAttrs: {
+                } {}) .overrideAttrs (oldAttrs: {
                   postPatch = ''
                     ${oldAttrs.postPatch or ""}
                     rm Setup.hs

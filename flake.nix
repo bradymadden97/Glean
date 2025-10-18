@@ -10,6 +10,7 @@
         let
           hlib = final.haskell.lib;
           overlayHS = hfinal: hprev: {
+            _ = builtins.trace (builtins.typeOf hprev.glean) null;
             glean =
               (hlib.overrideCabal (old: {
                 libraryHaskellDepends = (old.libraryHaskellDepends or []) ++ [ hfinal.hinotify ];

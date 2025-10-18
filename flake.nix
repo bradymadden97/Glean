@@ -12,7 +12,7 @@
           overlayHS = hfinal: hprev: {
             glean =
               (hlib.overrideCabal (old: {
-                libraryHaskellDepends = old.libraryHaskellDepends ++ [ hfinal.hinotify ];
+                libraryHaskellDepends = (old.libraryHaskellDepends or []) ++ [ hfinal.hinotify ];
                 jailbreak = true;
               }) hprev.glean).overrideAttrs
                 (oldAttrs: {
@@ -68,7 +68,7 @@
       packages.aarch64-darwin.glean = (import nixpkgs {
         system = "aarch64-darwin";
         overlays = [ overlay ];
-      }).haskellPackages.glean;
+      }).haskel.packages.ghc9103.glean;
     };
 }
 

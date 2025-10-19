@@ -1,0 +1,113 @@
+name: Build aarch64-darwin binary 2
+on: [push, pull_request]
+
+env:
+  LANG: en_US.UTF-8
+  LOCAL_BIN: ${{ github.workspace }}/.local/bin
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc: [8.10.7]
+        compiler: [clang]
+
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      #   - name: Initialize APT
+      #     run: |
+      #       sudo apt-get update
+      #       sudo apt-get install -y curl
+
+      #   - name: Setup en_US.UTF-8 locale
+      #     run: |
+      #       sudo apt-get install -y locales
+      #       sudo locale-gen en_US.UTF-8
+      #       sudo update-locale LANG=en_US.UTF-8
+
+      - name: Setup LOCAL_BIN environment
+        run: |
+          mkdir -p "$LOCAL_BIN"
+          echo "$LOCAL_BIN" >> "$GITHUB_PATH"
+
+      - name: Setup build time flags
+        run: |
+          echo "MAKEFLAGS=-j$(sysctl -n hw.ncpu)" >> "$GITHUB_ENV"
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew update
+          brew install cmake boost ninja git pkg-config \
+            openssl@3 lz4 snappy zstd jemalloc double-conversion \
+            libomp re2
+
+      - name: Setup Haskell (GHCup)
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | bash -s -- -y
+          echo "$HOME/.ghcup/bin" >> "$GITHUB_PATH"
+          source "$HOME/.ghcup/env"
+          ghcup install cabal --set
+          ghcup install ghc ${{ matrix.ghc }} --set
+
+      - name: Setup Clang/LLVM
+        run: |
+          brew install llvm@15
+          echo "/opt/homebrew/opt/llvm@15/bin" >> "$GITHUB_PATH"
+          # Set environment variables for clang/clang++
+          echo "CC=clang" >> "$GITHUB_ENV"
+          echo "CXX=clang++" >> "$GITHUB_ENV"
+          echo "LDFLAGS=-L/opt/homebrew/opt/llvm@15/lib" >> "$GITHUB_ENV"
+          echo "CPPFLAGS=-I/opt/homebrew/opt/llvm@15/include" >> "$GITHUB_ENV"
+
+      # and ghc 8.10 on arm needs opt and llc from llvm-12
+      #   - name: Install llvm tools for GHC/ARM
+      #     run: |
+      #       sudo apt-get install -y llvm-12
+      #       sudo update-alternatives --install /usr/bin/opt opt /usr/lib/llvm-12/bin/opt 10
+      #       sudo update-alternatives --install /usr/bin/llc llc /usr/lib/llvm-12/bin/llc 10
+
+      #   - name: Install folly and rocksdb dependencies
+      #     run: |
+      #       sudo apt-get install -y git ninja-build \
+      #         libaio-dev libbz2-dev libdouble-conversion-dev libdwarf-dev libgoogle-glog-dev libiberty-dev libjemalloc-dev \
+      #         liblzma-dev liblz4-dev libsnappy-dev libsodium-dev libssl-dev libunwind-dev libzstd-dev
+
+      - name: Fetch hsthrift and build folly, rocksdb
+        run: ./install_deps.sh --threads 2
+
+      - name: Nuke build artifacts
+        run: rm -rf /tmp/fbcode_builder_getdeps-Z__wZGleanZGleanZhsthriftZbuildZfbcode_builder-root/
+
+      - name: Setup hsthrift environment
+        run: |
+          echo "LD_LIBRARY_PATH=$HOME/.hsthrift/lib:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
+          echo "PKG_CONFIG_PATH=$HOME/.hsthrift/lib/pkgconfig:$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
+          echo "$HOME/.hsthrift/bin" >> "$GITHUB_PATH"
+
+      - name: Populate hackage index
+        run: cabal update
+
+      - name: Disable some tests
+        run: echo CABAL_CONFIG_FLAGS="-f-hack-tests -f-rust-tests -f-python-tests" >> "$GITHUB_ENV"
+
+      #   - name: Install hsthrift and Glean dependencies
+      #     run: sudo apt-get install -y pkg-config rsync libgmock-dev libpcre3-dev libtinfo-dev libxxhash-dev
+
+      - name: Build hsthrift and Glean
+        run: make
+
+    #   - name: Build glass
+    #     run: make glass
+
+    #   - name: Install glean-clang dependencies
+    #     run: sudo apt-get install -y clang-15 libclang-15-dev libclang-cpp15-dev libre2-dev
+
+    #   - name: Build glean-clang
+    #     run: make glean-clang
+
+    #   - name: Build hiedb-indexer
+    #     run: make glean-hiedb

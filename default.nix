@@ -1,13 +1,15 @@
+{ # You can allow overriding nixpkgs via CLI: nix-build --arg nixpkgs '<nixpkgs>'
+  nixpkgs ? import (fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/nixos-24.05.tar.gz";
+    # Replace with your preferred version if needed
+  }) {}
+}:
+
 let
-  pkgs = import ./. {
-    overlays = [
-      overlay
-    ];
-  };
-  inherit (pkgs) lib;
   overlay =
     final: prev:
     let
+      hlib = prev.haskell.lib.compose;
       overlayHS = hfinal: hprev: {
         glean =
           (hlib.overrideCabal (old: {
@@ -15,7 +17,6 @@ let
             jailbreak = true;
           }) hprev.glean).overrideAttrs
             (oldAttrs: {
-              # its busted and pointless
               postPatch = ''
                 ${oldAttrs.postPatch or ""}
                 rm Setup.hs
@@ -24,16 +25,6 @@ let
         fb-util =
           (hlib.dontCheck (hlib.unmarkBroken (hlib.doJailbreak hprev.fb-util))).overrideAttrs
             (oldAttrs: {
-              # why doesn't this work? who knows! it should be doing pkgconfig into the clang command line and it simply does not.
-              # env = (oldAttrs.env or {}) // {
-              #   NIX_DEBUG = 2;
-              # };
-              # # jank, should be libraryPkgconfigDepends in overrideCabal but I don't feel like it
-              # buildInputs = (oldAttrs.buildInputs or []) ++ [
-              #   final.folly
-              # ];
-
-              # jank jank jank! works around missing pkg-config in nixpkgs for glog.
               env = (prev.env or { }) // {
                 NIX_CFLAGS_COMPILE = "${
                   oldAttrs.env.NIX_CFLAGS_COMPILE or ""
@@ -50,13 +41,11 @@ let
         thrift-http = hlib.dontCheck (hlib.doJailbreak hprev.thrift-http);
         thrift-haxl = hlib.dontCheck (hlib.doJailbreak hprev.thrift-haxl);
         fb-stubs = hlib.unmarkBroken (hlib.doJailbreak hprev.fb-stubs);
-        # this really shouldn't be this goofy right??
-        folly-clib = hprev.callCabal2nixWithOptions "folly-clib" (pkgs.fetchzip {
+        folly-clib = hprev.callCabal2nixWithOptions "folly-clib" (prev.fetchzip {
           url = "mirror://hackage/folly-clib-20250713.1537/folly-clib-20250713.1537.tar.gz";
           sha256 = "sha256-pmiJ9TDn/TGs/DZwdkk0hl9rCyBjIeQfNDg6mTEMH40=";
         }) "-f-bundled-folly" { libfolly = final.folly; };
         haxl = (hlib.unmarkBroken hprev.haxl).overrideAttrs (oldAttrs: {
-          # its busted and pointless
           postPatch = "rm Setup.hs";
         });
         haskell-names = hlib.unmarkBroken (hlib.dontCheck (hlib.doJailbreak hprev.haskell-names));
@@ -67,12 +56,16 @@ let
       haskell = prev.haskell // {
         packages = prev.haskell.packages // {
           ghc9103 = prev.haskell.packages.ghc9103.override (old: {
-            overrides = lib.fold lib.composeExtensions (old.overrides or (_: _: { })) [ overlayHS ];
+            overrides = prev.lib.fold prev.lib.composeExtensions (old.overrides or (_: _: { })) [ overlayHS ];
           });
         };
       };
     };
-  hlib = pkgs.haskell.lib.compose;
+
+  pkgs = import nixpkgs {
+    overlays = [ overlay ];
+  };
+
 in
 {
   hsPkgs = pkgs.haskellPackages;

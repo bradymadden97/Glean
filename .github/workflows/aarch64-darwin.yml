@@ -14,7 +14,7 @@ jobs:
 
       - name: Build with Nix
         run: |
-          nix build --print-build-logs --no-link --out-link result default.nix
+          nix build --print-build-logs --no-link --out-link -f result default.nix
 
       - name: List build outputs
         run: |

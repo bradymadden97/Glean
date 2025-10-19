@@ -1,11 +1,7 @@
-{ # You can allow overriding nixpkgs via CLI: nix-build --arg nixpkgs '<nixpkgs>'
-  nixpkgs ? fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/nixos-24.05.tar.gz";
-    # Replace with your preferred version if needed
-  }
-}:
-
 let
+  nixpkgs = fetchTarball {
+    url = "https://github.com/NixOS/nixpkgs/archive/nixos-24.05.tar.gz";
+  };
   overlay =
     final: prev:
     let
